@@ -12,8 +12,8 @@ namespace Test.Automapper
             CreateMap<BookDTO, Book>();
             CreateMap<Author, AuthorDTO>();
             CreateMap<AuthorDTO, Author>();
-            CreateMap<Tag, TagDTO>();
-            CreateMap<TagDTO, Tag>();
+            CreateMap<Genre, TagDTO>();
+            CreateMap<TagDTO, Genre>();
         }
     }
 }

@@ -11,17 +11,17 @@ namespace Test.Controllers
     [ApiController]
     public class TagController : Controller
     {
-        private readonly ITagRepository _tagRepository;
+        private readonly IGenreRepository _tagRepository;
         private readonly IMapper _mapper;
 
-        public TagController(ITagRepository tagRepository, IMapper mapper)
+        public TagController(IGenreRepository tagRepository, IMapper mapper)
         {
             _tagRepository = tagRepository;
             _mapper = mapper;
         }
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Tag>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Genre>))]
         public async Task<IActionResult> GetTags()
         {
             var tag = await _tagRepository.GetTags();
@@ -33,7 +33,7 @@ namespace Test.Controllers
         }
 
         [HttpGet("{tagId}")]
-        [ProducesResponseType(200, Type = typeof(Tag))]
+        [ProducesResponseType(200, Type = typeof(Genre))]
         [ProducesResponseType(400)]
         public async Task<IActionResult> GetTagById(int tagId)
         {
@@ -67,7 +67,7 @@ namespace Test.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var tagMap = _mapper.Map<Tag>(tag);
+            var tagMap = _mapper.Map<Genre>(tag);
 
             if (!await _tagRepository.Create(tagMap))
             {

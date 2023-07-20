@@ -12,11 +12,11 @@ namespace Test.Controllers
     public class BookController : Controller
     {
         private readonly IBookRepository _bookRepository;
-        private readonly ITagRepository _tagRepository;
+        private readonly IGenreRepository _tagRepository;
         private readonly IAuthorRepository _authorRepository;
         private readonly IMapper _mapper;
 
-        public BookController(IBookRepository bookRepository, ITagRepository tagRepository, IAuthorRepository authorRepository, IMapper mapper)
+        public BookController(IBookRepository bookRepository, IGenreRepository tagRepository, IAuthorRepository authorRepository, IMapper mapper)
         {
             _bookRepository = bookRepository;
             _tagRepository = tagRepository;
@@ -69,7 +69,7 @@ namespace Test.Controllers
         }
 
         [HttpGet("{bookId}/sugestTags")]
-        [ProducesResponseType(200, Type = typeof(ICollection<Tag>))]
+        [ProducesResponseType(200, Type = typeof(ICollection<Genre>))]
         [ProducesResponseType(400)]
         public async Task<IActionResult> GetAllTagsThatBookByIdDoesntHave(int bookId)
         {
@@ -108,7 +108,7 @@ namespace Test.Controllers
             var bookMap = _mapper.Map<Book>(book);
 
             bookMap.Authors = new List<Author>();
-            bookMap.Tags = new List<Tag>();
+            bookMap.Tags = new List<Genre>();
 
             foreach (var tagId in tagIds)
             {

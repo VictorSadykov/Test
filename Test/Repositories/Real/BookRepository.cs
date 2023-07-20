@@ -47,7 +47,7 @@ namespace Test.Repositories.Real
                 .ToListAsync();
         }
 
-        public async Task<ICollection<Tag>> GetAllTagsThatThisBookDoesntHave(int id)
+        public async Task<ICollection<Genre>> GetAllTagsThatThisBookDoesntHave(int id)
         {
             return await _context.Tags
                 .Where(a => a.Books.All(
