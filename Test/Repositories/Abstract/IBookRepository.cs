@@ -12,5 +12,7 @@ namespace Test.Repositories.Abstract
         Task<bool> Create(Book book);
         Task<bool> Delete(Book book);
         Task<bool> DeleteBooks(List<Book> books);
+        ICollection<Book> GetBooksWithLimitAndPage(List<Book> books, int? limit, int? page);
+        Task<bool> Update(Book book);
     }
 }

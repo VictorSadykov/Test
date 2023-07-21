@@ -12,28 +12,58 @@ namespace Test.Controllers
     public class BookController : Controller
     {
         private readonly IBookRepository _bookRepository;
-        private readonly IGenreRepository _tagRepository;
+        private readonly IGenreRepository _genreRepository;
         private readonly IAuthorRepository _authorRepository;
         private readonly IMapper _mapper;
 
         public BookController(IBookRepository bookRepository, IGenreRepository tagRepository, IAuthorRepository authorRepository, IMapper mapper)
         {
             _bookRepository = bookRepository;
-            _tagRepository = tagRepository;
+            _genreRepository = tagRepository;
             _authorRepository = authorRepository;
             _mapper = mapper;
         }
 
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Book>))]
-        public async Task<IActionResult> GetBooks()
+        public async Task<IActionResult> GetBooks([FromQuery] int? authorId, [FromQuery] int? genreId, [FromQuery] int? limit, [FromQuery] int? page)
         {
-            var books =  await _bookRepository.GetBooks();
+            List<Book> books = new List<Book>();
+
+            
+
+            if (genreId is null && authorId is null)
+            {
+                books = (await _bookRepository.GetBooks()).ToList();
+                
+            }
+            else if (genreId is null && authorId is not null)
+            {
+                books = (await _bookRepository.GetBooks())
+                    .Where(x => x.AuthorId == authorId)                    
+                    .ToList();
+            }
+            else if (genreId is not null && authorId is null)
+            {
+                books = (await _bookRepository.GetBooks())
+                    .Where(x => x.GenreId == genreId)
+                    .ToList();
+            }
+            else if (genreId is not null && authorId is not null)
+            {
+                books = (await _bookRepository.GetBooks())
+                    .Where(x => x.GenreId == genreId
+                        && x.AuthorId == authorId)
+                    .ToList();
+            }
+
+            var booksLimitedAndPaged = _bookRepository.GetBooksWithLimitAndPage(books, limit, page);
+
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(books);            
+            return Ok(booksLimitedAndPaged);            
         }
 
         [HttpGet("{bookId}")]
@@ -52,42 +82,10 @@ namespace Test.Controllers
             return Ok(book);
         }
 
-        [HttpGet("{bookId}/sugestAuthors")]
-        [ProducesResponseType(200, Type = typeof(ICollection<Author>))]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> GetAllAuthorsThatBookByIdDoesntHave(int bookId)
-        {
-            if (!await _bookRepository.BookExists(bookId))
-                return NotFound();
-
-            var authorsThatThisBookDoesntHave = await _bookRepository.GetAllAuthorsThatThisBookDoesntHave(bookId);
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            return Ok(authorsThatThisBookDoesntHave);
-        }
-
-        [HttpGet("{bookId}/sugestTags")]
-        [ProducesResponseType(200, Type = typeof(ICollection<Genre>))]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> GetAllTagsThatBookByIdDoesntHave(int bookId)
-        {
-            if (!await _bookRepository.BookExists(bookId))
-                return NotFound();
-
-            var tagsThatThisBookDoesntHave = await _bookRepository.GetAllTagsThatThisBookDoesntHave(bookId);
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            return Ok(tagsThatThisBookDoesntHave);
-        }
-
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> CreateBook([FromBody] BookDTO book, [FromQuery] List<int> authorIds, [FromQuery] List<int> tagIds)
+        public async Task<IActionResult> CreateBook([FromBody] BookDTO book, [FromQuery] int authorId, [FromQuery] int genreId)
         {
             if (book is null)
                 return BadRequest(ModelState);
@@ -107,22 +105,9 @@ namespace Test.Controllers
 
             var bookMap = _mapper.Map<Book>(book);
 
-            bookMap.Authors = new List<Author>();
-            bookMap.Tags = new List<Genre>();
-
-            foreach (var tagId in tagIds)
-            {
-                var tag = await _tagRepository.GetTagById(tagId);
-                if (tag is not null)
-                    bookMap.Tags.Add(tag);
-            }
-
-            foreach (var authorId in authorIds)
-            {
-                var author = await _authorRepository.GetAuthorById(authorId);
-                if (author is not null)
-                    bookMap.Authors.Add(author);
-            }
+            bookMap.AuthorId = authorId;
+            bookMap.GenreId = genreId;
+            
 
 
             if (!await _bookRepository.Create(bookMap))
@@ -156,6 +141,38 @@ namespace Test.Controllers
             {
                 ModelState.AddModelError("", "Something went wrong when deleting books");
             }           
+
+            return NoContent();
+        }
+
+        [HttpPut("{bookId}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> UpdateCategory(int bookId, [FromBody] BookDTO book, [FromQuery] int authorId, [FromQuery] int genreId)
+        {
+            if (book is null)
+                return BadRequest(ModelState);
+
+            if (bookId != book.Id)
+                return BadRequest(ModelState);
+
+            if (!await _bookRepository.BookExists(bookId))
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var bookMap = _mapper.Map<Book>(book);
+
+            bookMap.AuthorId = authorId;
+            bookMap.GenreId = genreId;
+
+            if (!await _bookRepository.Update(bookMap))
+            {
+                ModelState.AddModelError("", "Something went wrong while updating the book");
+                return StatusCode(500, ModelState);
+            }
 
             return NoContent();
         }

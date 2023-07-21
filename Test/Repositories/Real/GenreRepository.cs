@@ -15,25 +15,25 @@ namespace Test.Repositories.Real
 
         public async Task<ICollection<Genre>> GetTags()
         {
-            return await _context.Tags.ToListAsync();
+            return await _context.Genres.ToListAsync();
         }
 
         public async Task<bool> DeleteTag(Genre tag)
         {
-            _context.Tags.Remove(tag);
+            _context.Genres.Remove(tag);
             return await Save();
         }
 
         public async Task<Genre> GetTagById(int id)
         {
-            return await _context.Tags
+            return await _context.Genres
                 .Where(t => t.Id == id)
                 .SingleOrDefaultAsync();
         }
 
         public async Task<Genre> GetTagByName(string name)
         {
-            return await _context.Tags
+            return await _context.Genres
                 .Where(t => t.Name.Trim().ToLower() == name.Trim().ToLower())
                 .SingleOrDefaultAsync();
         }
@@ -52,7 +52,7 @@ namespace Test.Repositories.Real
 
         public async Task<bool> TagExists(int id)
         {
-            return await _context.Tags.AnyAsync(x => x.Id == id);
+            return await _context.Genres.AnyAsync(x => x.Id == id);
         }
     }
 }

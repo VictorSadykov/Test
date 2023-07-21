@@ -38,49 +38,67 @@ namespace Test.Repositories.Real
         }
 
        
-        public async Task<ICollection<Author>> GetAllAuthorsThatThisBookDoesntHave(int id)
-        {
-            return await _context.Authors
-                .Where(a => a.Books.All(
-                        b => b.Id != id
-                    ))
-                .ToListAsync();
-        }
-
-        public async Task<ICollection<Genre>> GetAllTagsThatThisBookDoesntHave(int id)
-        {
-            return await _context.Tags
-                .Where(a => a.Books.All(
-                        b => b.Id != id
-                    ))
-                .ToListAsync();
-        }
+        
 
         public async Task<Book> GetBookById(int bookId)
         {
             return await _context.Books
-                .Where(b=> b.Id == bookId)
-                .Include(b => b.Authors)
-                .Include(b => b.Tags)
+                .Include(x => x.Genre)
+                .Include(x => x.Author)
+                .Where(b=> b.Id == bookId)                
                 .SingleOrDefaultAsync();
         }
 
         public async Task<Book> GetBookByTitle(string title)
         {
             return await _context.Books
+                .Include(x => x.Genre)
+                .Include(x => x.Author)
                 .Where(b => b.Title.Trim().ToLower() == title.Trim().ToLower())
                 .SingleOrDefaultAsync();
         }
 
         public async Task<ICollection<Book>> GetBooks()
         {
-            return await _context.Books.ToListAsync();
+            return await _context.Books
+                .Include(x => x.Genre)
+                .Include(x => x.Author)
+                .ToListAsync();
+        }
+
+        public ICollection<Book> GetBooksWithLimitAndPage(List<Book> books, int? limit, int? page)
+        {
+            int newLimit = limit ?? 9;
+            int newPage = page ?? 1;
+
+            int startIndex = (newPage - 1) * newLimit;
+            int endIndex = startIndex + newLimit - 1;
+
+            if (endIndex >= books.Count)
+            {
+                endIndex = books.Count - 1;
+            }
+
+            List<Book> booksPagedLimited = new List<Book>();
+
+            for (int i = startIndex; i <= endIndex; i++)
+            {
+                booksPagedLimited.Add(books[i]);
+            }
+
+            return booksPagedLimited;
         }
 
         public async Task<bool> Save()
         {
             var saved = await _context.SaveChangesAsync();
             return saved > 0 ? true : false;
+        }
+
+        public async Task<bool> Update(Book book)
+        {
+            var saved = _context.Update(book);
+            return await Save();
         }
     }
 }

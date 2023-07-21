@@ -1,6 +1,6 @@
 ﻿namespace Test.DTO
 {
-    public class TagDTO
+    public class GenreDTO
     {
         public int Id { get; set; }
         public string Name { get; set; }

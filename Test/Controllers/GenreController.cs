@@ -9,12 +9,12 @@ namespace Test.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TagController : Controller
+    public class GenreController : Controller
     {
         private readonly IGenreRepository _tagRepository;
         private readonly IMapper _mapper;
 
-        public TagController(IGenreRepository tagRepository, IMapper mapper)
+        public GenreController(IGenreRepository tagRepository, IMapper mapper)
         {
             _tagRepository = tagRepository;
             _mapper = mapper;
@@ -51,7 +51,7 @@ namespace Test.Controllers
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> CreateTag([FromBody] TagDTO tag)
+        public async Task<IActionResult> CreateTag([FromBody] GenreDTO tag)
         {
             if (tag is null)
                 return BadRequest(ModelState);
